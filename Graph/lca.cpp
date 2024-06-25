@@ -6,7 +6,7 @@ void dfs(int pos,int pre){
       if(it==pre) continue;
       depth[it]=depth[pos]+1;
       up[it][0] = pos; 
-      for(int j = 1; j < LOG; j){
+      for(int j = 1; j < LOG; j++){
         up[it][j] = up[up[it][j-1]][j-1]; }
       dfs(it,pos); }
    return ;}
