@@ -1,81 +1,146 @@
-vector<int> sort_cyclic_shifts(string const& s) {
-    int n = s.size();
-    const int alphabet = 256;
-    vector<int> p(n), c(n), cnt(max(alphabet, n), 0);
-    for (int i = 0; i < n; i++)
-        cnt[s[i]]++;
-    for (int i = 1; i < alphabet; i++)
-        cnt[i] += cnt[i-1];
-    for (int i = 0; i < n; i++)
-        p[--cnt[s[i]]] = i;
-    c[p[0]] = 0;
-    int classes = 1;
-    for (int i = 1; i < n; i++) {
-        if (s[p[i]] != s[p[i-1]])
-            classes++;
-        c[p[i]] = classes - 1;
+const int N = 3e5 + 9;
+const int LG = 18;
+ 
+void induced_sort(const vector<int> &vec, int val_range, vector<int> &SA, const vector<bool> &sl, const vector<int> &lms_idx) {
+  vector<int> l(val_range, 0), r(val_range, 0);
+  for (int c : vec) {
+    if (c + 1 < val_range) ++l[c + 1];
+    ++r[c];
+  }
+  partial_sum(l.begin(), l.end(), l.begin());
+  partial_sum(r.begin(), r.end(), r.begin());
+  fill(SA.begin(), SA.end(), -1);
+  for (int i = lms_idx.size() - 1; i >= 0; --i)
+    SA[--r[vec[lms_idx[i]]]] = lms_idx[i];
+  for (int i : SA)
+    if (i >= 1 && sl[i - 1]) {
+      SA[l[vec[i - 1]]++] = i - 1;
     }
-     vector<int> pn(n), cn(n);
-    for (int h = 0; (1 << h) < n; ++h) {
-        for (int i = 0; i < n; i++) {
-            pn[i] = p[i] - (1 << h);
-            if (pn[i] < 0)
-                pn[i] += n;
-        }
-        fill(cnt.begin(), cnt.begin() + classes, 0);
-        for (int i = 0; i < n; i++)
-            cnt[c[pn[i]]]++;
-        for (int i = 1; i < classes; i++)
-            cnt[i] += cnt[i-1];
-        for (int i = n-1; i >= 0; i--)
-            p[--cnt[c[pn[i]]]] = pn[i];
-        cn[p[0]] = 0;
-        classes = 1;
-        for (int i = 1; i < n; i++) {
-            pair<int, int> cur = {c[p[i]], c[(p[i] + (1 << h)) % n]};
-            pair<int, int> prev = {c[p[i-1]], c[(p[i-1] + (1 << h)) % n]};
-            if (cur != prev)
-                ++classes;
-            cn[p[i]] = classes - 1;
-        }
-        c.swap(cn);
-        if(classes==n)break;//jodi logn iteration er aghei sort hoye jay
+  fill(r.begin(), r.end(), 0);
+  for (int c : vec)
+    ++r[c];
+  partial_sum(r.begin(), r.end(), r.begin());
+  for (int k = SA.size() - 1, i = SA[k]; k >= 1; --k, i = SA[k])
+    if (i >= 1 && !sl[i - 1]) {
+      SA[--r[vec[i - 1]]] = i - 1;
     }
-    return p;
 }
-vector<int> suffix_array_construction(string s) {
-    s += "$";
-    vector<int> sorted_shifts = sort_cyclic_shifts(s);
-    sorted_shifts.erase(sorted_shifts.begin());
-    return sorted_shifts;
+ 
+vector<int> SA_IS(const vector<int> &vec, int val_range) {
+  const int n = vec.size();
+  vector<int> SA(n), lms_idx;
+  vector<bool> sl(n);
+  sl[n - 1] = false;
+  for (int i = n - 2; i >= 0; --i) {
+    sl[i] = (vec[i] > vec[i + 1] || (vec[i] == vec[i + 1] && sl[i + 1]));
+    if (sl[i] && !sl[i + 1]) lms_idx.push_back(i + 1);
+  }
+  reverse(lms_idx.begin(), lms_idx.end());
+  induced_sort(vec, val_range, SA, sl, lms_idx);
+  vector<int> new_lms_idx(lms_idx.size()), lms_vec(lms_idx.size());
+  for (int i = 0, k = 0; i < n; ++i)
+    if (!sl[SA[i]] && SA[i] >= 1 && sl[SA[i] - 1]) {
+      new_lms_idx[k++] = SA[i];
+    }
+  int cur = 0;
+  SA[n - 1] = cur;
+  for (size_t k = 1; k < new_lms_idx.size(); ++k) {
+    int i = new_lms_idx[k - 1], j = new_lms_idx[k];
+    if (vec[i] != vec[j]) {
+      SA[j] = ++cur;
+      continue;
+    }
+    bool flag = false;
+    for (int a = i + 1, b = j + 1;; ++a, ++b) {
+      if (vec[a] != vec[b]) {
+        flag = true;
+        break;
+      }
+      if ((!sl[a] && sl[a - 1]) || (!sl[b] && sl[b - 1])) {
+        flag = !((!sl[a] && sl[a - 1]) && (!sl[b] && sl[b - 1]));
+        break;
+      }
+    }
+    SA[j] = (flag ? ++cur : cur);
+  }
+  for (size_t i = 0; i < lms_idx.size(); ++i)
+    lms_vec[i] = SA[lms_idx[i]];
+  if (cur + 1 < (int)lms_idx.size()) {
+    auto lms_SA = SA_IS(lms_vec, cur + 1);
+    for (size_t i = 0; i < lms_idx.size(); ++i) {
+      new_lms_idx[i] = lms_idx[lms_SA[i]];
+    }
+  }
+  induced_sort(vec, val_range, SA, sl, new_lms_idx);
+  return SA;
 }
-//longest common prefix of string suffix
-vector<int> lcp_construction(string const& s, vector<int> const& p) {
-    int n = s.size();
-    vector<int> rank(n, 0);
-    for (int i = 0; i < n; i++)
-        rank[p[i]] = i;
+vector<int> suffix_array(const string &s, const int LIM = 128) {
+  vector<int> vec(s.size() + 1);
+  copy(begin(s), end(s), begin(vec));
+  vec.back() = '$';
+  auto ret = SA_IS(vec, LIM);
+  ret.erase(ret.begin());
+  return ret;
+}
+struct SuffixArray {
+  int n;
+  string s;
+  vector<int> sa, rank, lcp;
+  vector<vector<int>> t;
+  vector<int> lg;
+  SuffixArray() {}
+  SuffixArray(string _s) {
+    n = _s.size();
+    s = _s;
+    sa = suffix_array(s);
+    rank.resize(n);
+    for (int i = 0; i < n; i++) rank[sa[i]] = i;
+    costruct_lcp();
+    prec();
+    build();
+  }
+  void costruct_lcp() {
     int k = 0;
-    vector<int> lcp(n-1, 0);
+    lcp.resize(n - 1, 0);
     for (int i = 0; i < n; i++) {
-        if (rank[i] == n - 1) {
-            k = 0;
-            continue;
-        }
-        int j = p[rank[i] + 1];
-        while (i + k < n && j + k < n && s[i+k] == s[j+k])
-            k++;
-        lcp[rank[i]] = k;
-        if (k)
-            k--;
+      if (rank[i] == n - 1) {
+        k = 0;
+        continue;
+      }
+      int j = sa[rank[i] + 1];
+      while (i + k < n && j + k < n && s[i + k] == s[j + k])  k++;
+      lcp[rank[i]] = k;
+      if (k)  k--;
     }
-    return lcp;}
-// Here We need to build sparse table of lcp array and write query function
-int get_lcp(int i, int j) {// lcp of suffix starting from i and j
+  }
+  void prec() {
+    lg.resize(n, 0);
+    for (int i = 2; i < n; i++) lg[i] = lg[i / 2] + 1;
+  }
+  void build() {
+    int sz = n - 1;
+    t.resize(sz);
+    for (int i = 0; i < sz; i++) {
+      t[i].resize(LG);
+      t[i][0] = lcp[i];
+    }
+    for (int k = 1; k < LG; ++k) {
+      for (int i = 0; i + (1 << k) - 1 < sz; ++i) {
+        t[i][k] = min(t[i][k - 1], t[i + (1 << (k - 1))][k - 1]);
+      }
+    }
+  }
+  int query(int l, int r) { // minimum of lcp[l], ..., lcp[r]
+    int k = lg[r - l + 1];
+    return min(t[l][k], t[r - (1 << k) + 1][k]);
+  }
+  int get_lcp(int i, int j) { // lcp of suffix starting from i and j
+    return query(i, j - 1);
     if (i == j) return n - i;
     int l = rank[i], r = rank[j];
     if (l > r) swap(l, r);
-    return query(l, r - 1);}
+    return query(l, r - 1);
+  }
   int lower_bound(string &t) {
     int l = 0, r = n - 1, k = t.size(), ans = n;
     while (l <= r) {
@@ -92,7 +157,8 @@ int get_lcp(int i, int j) {// lcp of suffix starting from i and j
       if (s.substr(sa[mid], min(n - sa[mid], k)) > t) ans = mid, r = mid - 1;
       else l = mid + 1;
     }
-    return ans; }
+    return ans;
+  }
   // occurrences of s[p, ..., p + len - 1]
   pair<int, int> find_occurrence(int p, int len) {
     p = rank[p];
@@ -111,3 +177,5 @@ int get_lcp(int i, int j) {// lcp of suffix starting from i and j
     }
     return ans;
   }
+ 
+};
