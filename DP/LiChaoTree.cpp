@@ -59,7 +59,6 @@ struct node {
     return ans;
   }
 };
-
 struct LiChaoTree {
   int L, R;
   node* root;
