@@ -14,10 +14,8 @@ int mergeCost(int i, int j, int k) {
 }
 ll solve(int l, int r) {
     if (l >= r) return 0;
- 
     ll& ans = dp[l][r];
     if (ans != -1) return ans;
- 
     ans = inf;
     for (int i = l; i < r; i++) {
         ll left = solve(l, i);
@@ -25,14 +23,12 @@ ll solve(int l, int r) {
         ll cost = mergeCost(l, r, i) + (left + right);
         ans = min(ans, cost);
     }
- 
     return ans;
 }
 int evaluate(int i, int j) {
     if (i >= j) {
         return 0;
     }
- 
     return dp[i][j];
 }
  
@@ -42,7 +38,6 @@ ll solve() {
         for (int i = 0; i < n; i++) {
             int j = i + sz - 1;
             if (j >= n) break;
- 
             ll ans = inf;
             for(int k = i; k < j; k++) {
                 ll res_left = evaluate(i, k);
@@ -53,7 +48,6 @@ ll solve() {
             dp[i][j] = ans;
         }
     }
- 
     return dp[0][n-1];
 }
  
