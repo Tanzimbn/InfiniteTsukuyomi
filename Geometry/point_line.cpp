@@ -1226,49 +1226,6 @@ double maximum_inscribed_circle(vector<PT> p) {
     }
     return l;
 }
-// ear decomposition, O(n^3) but faster
-vector<vector<PT>> triangulate(vector<PT> p) {
-  vector<vector<PT>> v;
-  while (p.size() >= 3) {
-	for (int i = 0, n = p.size(); i < n; i++) {
-  	int pre = i == 0 ? n - 1 : i - 1;;
-  	int nxt = i == n - 1 ? 0 : i + 1;;
-  	int ori = orientation(p[i], p[pre], p[nxt]);
-  	if (ori < 0) {
-    	int ok = 1;
-    	for (int j = 0; j < n; j++) {
-      	if (j == i || j == pre || j == nxt)continue;
-      	if (is_point_in_triangle(p[i], p[pre], p[nxt] , p[j]) < 1) {
-        	ok = 0;
-        	break;
-      	}
-    	}
-    	if (ok) {
-      	v.push_back({p[pre], p[i], p[nxt]});
-      	p.erase(p.begin() + i);
-      	break;
-    	}
-  	}
-	}
-  }
-  return v;
-}
-struct star {
-    int n;	// number of sides of the star
-    double r; // radius of the circumcircle
-    star(int _n, double _r) {
-   	 n = _n;
-   	 r = _r;
-    }
-    double area() {
-   	 double theta = PI / n;
-   	 double s = 2 * r * sin(theta);
-   	 double R = 0.5 * s / tan(theta);
-   	 double a = 0.5 * n * s * R;
-   	 double a2 = 0.25 * s * s / tan(1.5 * theta);
-   	 return a - n * a2;
-    }
-};
 // given a list of lengths of the sides of a polygon in counterclockwise order
 // returns the maximum area of a non-degenerate polygon that can be formed using those lengths
 double get_maximum_polygon_area_for_given_lengths(vector<double> v) {
