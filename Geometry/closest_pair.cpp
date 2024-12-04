@@ -19,10 +19,4 @@ pair<int, int> closest_pair(vector<pair<int, int>> a) {
    	 r++;
     }
     return ret;}
-int32_t main() {
-    int n; cin >> n;
-    vector<pair<int, int>> p(n);
-    for (int i = 0; i < n; i++) cin >> p[i].x >> p[i].y;
-    pair<int, int> z = closest_pair(p);
-    if (z.x > z.y) swap(z.x, z.y);
-    cout << z.x << ' ' << z.y << ' ' << fixed << setprecision(6) << sqrtl(dist2(p[z.x], p[z.y])) << '\n';}
+pair<int, int> z = closest_pair(p);
