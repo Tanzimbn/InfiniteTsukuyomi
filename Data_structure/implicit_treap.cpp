@@ -1,8 +1,6 @@
 mt19937 rnd(chrono::steady_clock::now().time_since_epoch().count());
-const int N = 3e5 + 9;
-const int mod = 1e9 + 7;
-struct treap {
-  //This is an implicit treap which investigates here on an array
+const int N = 3e5 + 9, mod = 1e9 + 7;
+struct treap { //This is an implicit treap which investigates here on an array
   struct node {
     int val, sz, prior, lazy, sum, mx, mn, repl;
     bool repl_flag, rev;
@@ -23,13 +21,9 @@ struct treap {
   pnode root;
   map<int, pnode> position;//positions of all the values
   //clearing the treap
-  void clear() {
-    root = NULL;
-    position.clear();
-  }
-  treap() {
-    clear();
-  }
+void clear() {
+root = NULL;position.clear();}
+treap() {clear();}
   int size(pnode t) {
     return t ? t->sz : 0;
   }
