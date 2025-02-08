@@ -2,7 +2,7 @@ using treap_val = char; // treap value data type
 struct node {
     node *L, *R; int W, S;
     treap_val V; bool F;
-    node(char x) {
+    node(treap_val x) {
 L = R = 0; W = rand();
 S = 1; V = x; F = 0; }
 };
