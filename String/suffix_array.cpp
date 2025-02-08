@@ -1,6 +1,4 @@
-const int N = 3e5 + 9;
-const int LG = 18;
- 
+const int N = 3e5 + 9, LG = 18;
 void induced_sort(const vector<int> &vec, int val_range, vector<int> &SA, const vector<bool> &sl, const vector<int> &lms_idx) {
   vector<int> l(val_range, 0), r(val_range, 0);
   for (int c : vec) {
@@ -25,7 +23,6 @@ void induced_sort(const vector<int> &vec, int val_range, vector<int> &SA, const 
       SA[--r[vec[i - 1]]] = i - 1;
     }
 }
- 
 vector<int> SA_IS(const vector<int> &vec, int val_range) {
   const int n = vec.size();
   vector<int> SA(n), lms_idx;
@@ -85,19 +82,15 @@ vector<int> suffix_array(const string &s, const int LIM = 128) {
 struct SuffixArray {
   int n;
   string s;
-  vector<int> sa, rank, lcp;
+  vector<int> sa, rank, lcp, lg;
   vector<vector<int>> t;
-  vector<int> lg;
   SuffixArray() {}
   SuffixArray(string _s) {
-    n = _s.size();
-    s = _s;
+    n = _s.size(); s = _s;
     sa = suffix_array(s);
     rank.resize(n);
     for (int i = 0; i < n; i++) rank[sa[i]] = i;
-    costruct_lcp();
-    prec();
-    build();
+    costruct_lcp(); prec(); build();
   }
   void costruct_lcp() {
     int k = 0;
@@ -130,7 +123,7 @@ struct SuffixArray {
       }
     }
   }
-  int query(int l, int r) { // minimum of lcp[l], ..., lcp[r]
+  int query(int l, int r) {//min of lcp[l],...,lcp[r]
     int k = lg[r - l + 1];
     return min(t[l][k], t[r - (1 << k) + 1][k]);
   }
